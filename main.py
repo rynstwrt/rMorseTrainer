@@ -19,6 +19,8 @@ from qt_material import apply_stylesheet
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.randomly_generated = None
+        self.answer = None
 
         self.setWindowTitle("rMorseTrainer")
 
@@ -30,14 +32,14 @@ class MainWindow(QMainWindow):
         included_items_form = QFormLayout()
         included_items_label = QLabel("To practice:")
         included_items_combo_box = QComboBox()
-        included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Both Letters and Numbers"])
+        included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Symbols Only", "Letters and Numbers Only", "All"])
         included_items_form.addRow(included_items_label, included_items_combo_box)
         layout.addLayout(included_items_form)
 
         speed_form = QFormLayout()
         speed_label = QLabel("Speed:")
         speed_combo_box = QComboBox()
-        speed_combo_box.addItems(["10 wpm", "20 wpm", "30 wpm", "40 wpm"])
+        speed_combo_box.addItems(["5 wpm", "12 wpm", "18 wpm", "20 wpm"])
         speed_form.addRow(speed_label, speed_combo_box)
         layout.addLayout(speed_form)
 
@@ -72,13 +74,13 @@ class MainWindow(QMainWindow):
             for letter_button in self.letter_options:
                 letter_button.setVisible(True)
 
-        answer = random.choice(ascii_uppercase)
+        self.answer = random.choice(ascii_uppercase)
 
-        choices = self.generate_option_choices(answer)
+        choices = self.generate_option_choices()
         for i, letter_button in enumerate(self.letter_options):
             letter_button.setText(choices[i])
 
-        self.play_letter_sound(answer)
+        self.play_letter_sound(self.answer)
 
 
     def play_letter_sound(self, letter):
@@ -89,13 +91,33 @@ class MainWindow(QMainWindow):
         print(choice)
 
 
-    def generate_option_choices(self, answer):
-        randomly_generated = [""] * len(self.letter_options)
+    def generate_random_option_choices(self):
+        self.randomly_generated = [""] * len(self.letter_options)
+
         for i in range(len(self.letter_options)):
-            randomly_generated[i] = random.choice(ascii_uppercase)
+            self.randomly_generated[i] = random.choice(ascii_uppercase)
+
         answer_index = random.randint(1, len(self.letter_options) - 1)
-        randomly_generated[answer_index] = answer
-        return randomly_generated
+        self.randomly_generated[answer_index] = self.answer
+
+        return self.randomly_generated
+
+
+    def generate_option_choices(self):
+        random_options = self.generate_random_option_choices()
+
+        while self.has_duplicates(random_options):
+            random_options = self.generate_random_option_choices()
+
+        return random_options
+
+
+
+    def has_duplicates(self, choices):
+        if choices == set([x for x in choices if choices.count(x) > 1]):
+            return True
+        return False
+
 
 
 
