@@ -1,7 +1,10 @@
 import sys
 from string import ascii_uppercase
 import random
-from PySide6.QtCore import Qt
+from time import sleep
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -21,8 +24,13 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.randomly_generated = None
         self.answer = None
+        self.media_player = None
+        self.audio_output = None
+        self.num_wrong = 0
+        self.num_correct = 0
 
         self.setWindowTitle("rMorseTrainer")
+        self.setWindowIcon(QIcon("assets/rMorseIcon.png"))
 
         container_widget = QWidget()
         layout = QVBoxLayout()
@@ -40,8 +48,17 @@ class MainWindow(QMainWindow):
         speed_label = QLabel("Speed:")
         speed_combo_box = QComboBox()
         speed_combo_box.addItems(["5 wpm", "12 wpm", "18 wpm", "20 wpm"])
+        speed_combo_box.setCurrentIndex(1)
         speed_form.addRow(speed_label, speed_combo_box)
         layout.addLayout(speed_form)
+
+        num_correct_or_wrong_row = QHBoxLayout()
+        num_correct_or_wrong_row.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+        self.num_correct_text = QLabel("Correct: 0")
+        num_correct_or_wrong_row.addWidget(self.num_correct_text)
+        self.num_wrong_text = QLabel("Wrong: 0")
+        num_correct_or_wrong_row.addWidget(self.num_wrong_text)
+        layout.addLayout(num_correct_or_wrong_row)
 
         self.play_button = QPushButton("Play Sample")
         self.play_button.clicked.connect(self.on_play_button_pressed)
@@ -84,11 +101,41 @@ class MainWindow(QMainWindow):
 
 
     def play_letter_sound(self, letter):
-        print(letter)
+        file_path = "assets/letter_morse_audio/" + letter.lower() + ".mp3"
+        self.play_audio(file_path)
 
 
     def on_choice_clicked(self, choice):
-        print(choice)
+        if choice != self.answer:
+            self.on_wrong()
+        else:
+            self.on_correct()
+
+        self.on_play_button_pressed()
+
+
+    def on_wrong(self):
+        self.play_audio("assets/wrong.wav")
+        self.num_wrong += 1
+        self.num_wrong_text.setText("Wrong: " + str(self.num_wrong))
+
+
+    def on_correct(self):
+        self.play_audio("assets/correct.wav")
+        self.num_correct += 1
+        self.num_correct_text.setText("Correct: " + str(self.num_correct))
+
+
+    def play_audio(self, file_path):
+        if self.media_player:
+            self.media_player.stop()
+
+        self.media_player = QMediaPlayer()
+        self.audio_output = QAudioOutput()
+        self.media_player.setAudioOutput(self.audio_output)
+        self.media_player.setSource(QUrl.fromLocalFile(file_path))
+        self.audio_output.setVolume(50)
+        self.media_player.play()
 
 
     def generate_random_option_choices(self):
@@ -105,16 +152,15 @@ class MainWindow(QMainWindow):
 
     def generate_option_choices(self):
         random_options = self.generate_random_option_choices()
-
         while self.has_duplicates(random_options):
             random_options = self.generate_random_option_choices()
 
         return random_options
 
 
-
-    def has_duplicates(self, choices):
-        if choices == set([x for x in choices if choices.count(x) > 1]):
+    @staticmethod
+    def has_duplicates(choices):
+        if len(set([x for x in choices if choices.count(x) > 1])) > 0:
             return True
         return False
 
