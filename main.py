@@ -1,4 +1,5 @@
 import sys
+from math import ceil
 from string import ascii_uppercase
 import random
 from time import sleep
@@ -14,7 +15,8 @@ from PySide6.QtWidgets import (
     QComboBox,
     QLabel,
     QWidget,
-    QPushButton
+    QPushButton,
+    QGridLayout
 )
 from qt_material import apply_stylesheet
 
@@ -22,7 +24,7 @@ from qt_material import apply_stylesheet
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.randomly_generated = None
+        # self.randomly_generated = None
         self.answer = None
         self.media_player = None
         self.audio_output = None
@@ -40,9 +42,9 @@ class MainWindow(QMainWindow):
 
         included_items_form = QFormLayout()
         included_items_label = QLabel("To practice:")
-        included_items_combo_box = QComboBox()
-        included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Symbols Only", "Letters and Numbers Only", "All"])
-        included_items_form.addRow(included_items_label, included_items_combo_box)
+        self.included_items_combo_box = QComboBox()
+        self.included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Symbols Only", "Letters and Numbers Only", "All"])
+        included_items_form.addRow(included_items_label, self.included_items_combo_box)
         layout.addLayout(included_items_form)
 
         speed_form = QFormLayout()
@@ -71,44 +73,134 @@ class MainWindow(QMainWindow):
         sample_row.addWidget(self.replay_button)
         layout.addLayout(sample_row)
 
-        self.letter_options_text = QLabel("Select which letter that was:")
-        self.letter_options_text.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
-        self.letter_options_text.setVisible(False)
-        layout.addWidget(self.letter_options_text)
-        self.letter_options_container = QHBoxLayout()
-        self.letter1 = QPushButton()
-        self.letter2 = QPushButton()
-        self.letter3 = QPushButton()
-        self.letter4 = QPushButton()
-        self.letter5 = QPushButton()
-        self.letter_options = [self.letter1, self.letter2, self.letter3, self.letter4, self.letter5]
-        for i, letter_button in enumerate(self.letter_options):
-            self.letter_options_container.addWidget(letter_button)
-            letter_button.setObjectName(str(i))
-            letter_button.clicked.connect(self.on_choice_clicked)
-            letter_button.setVisible(False)
-        layout.addLayout(self.letter_options_container)
+        # self.letter_options_text = QLabel("Select which letter that was:")
+        # self.letter_options_text.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
+        # self.letter_options_text.setVisible(False)
+        # layout.addWidget(self.letter_options_text)
+        options_grid = QGridLayout()
+        layout.addLayout(options_grid)
+
+        btn_a = QPushButton("A")
+        btn_b = QPushButton("B")
+        btn_c = QPushButton("C")
+        btn_d = QPushButton("D")
+        btn_e = QPushButton("E")
+        btn_f = QPushButton("F")
+        btn_g = QPushButton("G")
+        btn_h = QPushButton("H")
+        btn_i = QPushButton("I")
+        btn_j = QPushButton("J")
+        btn_k = QPushButton("K")
+        btn_l = QPushButton("L")
+        btn_m = QPushButton("M")
+        btn_n = QPushButton("N")
+        btn_o = QPushButton("O")
+        btn_p = QPushButton("P")
+        btn_q = QPushButton("Q")
+        btn_r = QPushButton("R")
+        btn_s = QPushButton("S")
+        btn_t = QPushButton("T")
+        btn_u = QPushButton("U")
+        btn_v = QPushButton("V")
+        btn_w = QPushButton("W")
+        btn_x = QPushButton("X")
+        btn_y = QPushButton("Y")
+        btn_z = QPushButton("Z")
+
+        btn_0 = QPushButton("0")
+        btn_1 = QPushButton("1")
+        btn_2 = QPushButton("2")
+        btn_3 = QPushButton("3")
+        btn_4 = QPushButton("4")
+        btn_5 = QPushButton("5")
+        btn_6 = QPushButton("6")
+        btn_7 = QPushButton("7")
+        btn_8 = QPushButton("8")
+        btn_9 = QPushButton("9")
+
+        btn_at = QPushButton("@")
+        btn_comma = QPushButton(",")
+        btn_period = QPushButton(".")
+        btn_question_mark = QPushButton("?")
+        btn_slash = QPushButton("/")
+
+        self.option_letter_buttons = [btn_a, btn_b, btn_c, btn_d, btn_e,
+                                      btn_f, btn_g, btn_h, btn_i, btn_j,
+                                      btn_k, btn_l, btn_m, btn_n, btn_o,
+                                      btn_p, btn_q, btn_r, btn_s, btn_t,
+                                      btn_u, btn_v, btn_w, btn_x, btn_y,
+                                      btn_z]
+
+        self.option_number_buttons = [btn_0, btn_1, btn_2, btn_3, btn_4,
+                                      btn_5, btn_6, btn_7, btn_8, btn_9]
+
+        self.option_symbol_buttons = [btn_at, btn_comma, btn_period, btn_question_mark, btn_slash]
+
+        total_num_option_buttons = len(self.option_letter_buttons) + len(self.option_number_buttons) + len(self.option_symbol_buttons)
+        num_columns = 5
+        num_rows = ceil(total_num_option_buttons / num_columns)
+        self.all_buttons = self.option_letter_buttons + self.option_number_buttons + self.option_symbol_buttons
+
+        grid_index = 0
+        for col_idx in range(num_columns):
+            for row_idx in range(num_rows):
+                if grid_index >= len(self.all_buttons):
+                    continue
+                button = self.all_buttons[grid_index]
+                button.setObjectName(str(grid_index))
+                button.clicked.connect(self.on_choice_clicked)
+                button.setEnabled(False)
+                options_grid.addWidget(button, col_idx, row_idx)
+                grid_index += 1
 
 
     def on_play_button_pressed(self):
         if self.play_button.text() == "Play Sample":
             self.play_button.setText("Play Next Sample")
 
-            self.letter_options_text.setVisible(True)
+        for button in self.all_buttons:
+            button.setEnabled(False)
 
-            for letter_button in self.letter_options:
-                letter_button.setVisible(True)
+        mode_combo_box_idx = self.included_items_combo_box.currentIndex()
+        if mode_combo_box_idx == 0:  # letters only
+            self.answer = random.choice(ascii_uppercase)
+            for button in self.option_letter_buttons:
+                button.setEnabled(True)
+        elif mode_combo_box_idx == 1:  # numbers only
+            self.answer = str(random.randint(0, 9))
+            for button in self.option_number_buttons:
+                button.setEnabled(True)
+        elif mode_combo_box_idx == 2:  # symbols only
+            self.answer = random.choice(["@", ",", ".", "?", "/"])
+            for button in self.option_symbol_buttons:
+                button.setEnabled(True)
+        elif mode_combo_box_idx == 3:  # letters and numbers
+            letters_and_numbers = self.option_letter_buttons + self.option_number_buttons
+            random_int = random.randint(0, 9)
+            random_letter = random.choice(ascii_uppercase)
+            if random.randint(0, 1) == 0:
+                self.answer = str(random_int)
+            else:
+                self.answer = random_letter
+            for button in letters_and_numbers:
+                button.setEnabled(True)
+        elif mode_combo_box_idx == 4:  # all symbols
+            random_int = random.randint(0, 9)
+            random_letter = random.choice(ascii_uppercase)
+            random_symbol = random.choice(["@", ",", ".", "?", "/"])
+            rand_idx = random.randint(0, 2)
+            if rand_idx == 0:
+                self.answer = str(random_int)
+            elif rand_idx == 1:
+                self.answer = random_letter
+            else:
+                self.answer = random_symbol
+            for button in self.all_buttons:
+                button.setEnabled(True)
 
-        self.answer = random.choice(ascii_uppercase)
         print("ANSWER: " + self.answer)
 
-        choices = self.generate_option_choices()
-        for i, letter_button in enumerate(self.letter_options):
-            letter_button.setText(choices[i])
-            letter_button.setEnabled(True)
-
         self.replay_button.setEnabled(True)
-
         self.play_letter_sound(self.answer)
 
 
@@ -133,15 +225,15 @@ class MainWindow(QMainWindow):
 
     def on_choice_clicked(self):
         choice_index = self.sender().objectName()
-        choice = self.letter_options[int(choice_index)].text()
+        choice = self.all_buttons[int(choice_index)].text()
 
-        if choice != self.answer:
-            self.on_wrong()
-        else:
+        if choice == self.answer:
             self.on_correct()
+        else:
+            self.on_wrong()
 
-        for option_button in self.letter_options:
-            option_button.setEnabled(False)
+        for button in self.all_buttons:
+            button.setEnabled(False)
 
         self.replay_button.setEnabled(False)
 
@@ -174,31 +266,31 @@ class MainWindow(QMainWindow):
             self.audio_done_playing = False
 
 
-    def generate_random_option_choices(self):
-        self.randomly_generated = [""] * len(self.letter_options)
+    # def generate_random_option_choices(self):
+    #     # self.randomly_generated = [""] * len(self.letter_options)
+    #
+    #     # for i in range(len(self.letter_options)):
+    #     #     self.randomly_generated[i] = random.choice(ascii_uppercase)
+    #
+    #     # answer_index = random.randint(1, len(self.letter_options) - 1)
+    #     # self.randomly_generated[answer_index] = self.answer
+    #
+    #     # return self.randomly_generated
+    #
+    #
+    # def generate_option_choices(self):
+    #     random_options = self.generate_random_option_choices()
+    #     while self.has_duplicates(random_options):
+    #         random_options = self.generate_random_option_choices()
+    #
+    #     return random_options
 
-        for i in range(len(self.letter_options)):
-            self.randomly_generated[i] = random.choice(ascii_uppercase)
 
-        answer_index = random.randint(1, len(self.letter_options) - 1)
-        self.randomly_generated[answer_index] = self.answer
-
-        return self.randomly_generated
-
-
-    def generate_option_choices(self):
-        random_options = self.generate_random_option_choices()
-        while self.has_duplicates(random_options):
-            random_options = self.generate_random_option_choices()
-
-        return random_options
-
-
-    @staticmethod
-    def has_duplicates(choices):
-        if len(set([x for x in choices if choices.count(x) > 1])) > 0:
-            return True
-        return False
+    # @staticmethod
+    # def has_duplicates(choices):
+    #     if len(set([x for x in choices if choices.count(x) > 1])) > 0:
+    #         return True
+    #     return False
 
 
 
