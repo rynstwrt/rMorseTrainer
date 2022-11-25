@@ -2,7 +2,7 @@ import sys
 from math import ceil
 from string import ascii_uppercase
 import random
-from time import sleep
+from os import path
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtGui import QIcon
@@ -24,13 +24,13 @@ from qt_material import apply_stylesheet
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        # self.randomly_generated = None
         self.answer = None
         self.media_player = None
         self.audio_output = None
         self.num_wrong = 0
         self.num_correct = 0
         self.audio_done_playing = True
+        self.symbol_list = ["@", ",", ".", "?", "/"]
 
         self.setWindowTitle("rMorseTrainer")
         self.setWindowIcon(QIcon("assets/rMorseIcon.png"))
@@ -73,10 +73,6 @@ class MainWindow(QMainWindow):
         sample_row.addWidget(self.replay_button)
         layout.addLayout(sample_row)
 
-        # self.letter_options_text = QLabel("Select which letter that was:")
-        # self.letter_options_text.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
-        # self.letter_options_text.setVisible(False)
-        # layout.addWidget(self.letter_options_text)
         options_grid = QGridLayout()
         layout.addLayout(options_grid)
 
@@ -171,7 +167,7 @@ class MainWindow(QMainWindow):
             for button in self.option_number_buttons:
                 button.setEnabled(True)
         elif mode_combo_box_idx == 2:  # symbols only
-            self.answer = random.choice(["@", ",", ".", "?", "/"])
+            self.answer = random.choice(self.symbol_list)
             for button in self.option_symbol_buttons:
                 button.setEnabled(True)
         elif mode_combo_box_idx == 3:  # letters and numbers
@@ -187,7 +183,7 @@ class MainWindow(QMainWindow):
         elif mode_combo_box_idx == 4:  # all symbols
             random_int = random.randint(0, 9)
             random_letter = random.choice(ascii_uppercase)
-            random_symbol = random.choice(["@", ",", ".", "?", "/"])
+            random_symbol = random.choice(self.symbol_list)
             rand_idx = random.randint(0, 2)
             if rand_idx == 0:
                 self.answer = str(random_int)
@@ -201,25 +197,29 @@ class MainWindow(QMainWindow):
         print("ANSWER: " + self.answer)
 
         self.replay_button.setEnabled(True)
-        self.play_letter_sound(self.answer)
+
+        if self.answer.upper() in ascii_uppercase:
+            self.play_character_sound("assets/letter_morse_audio", self.answer + ".mp3")
+        elif self.answer.isnumeric():
+            self.play_character_sound("assets/number_morse_audio", self.answer + ".mp3")
+        elif self.answer in self.symbol_list:
+            self.play_character_sound("assets/symbol_morse_audio", self.answer + ".mp3")
 
 
     def on_replay_button_pressed(self):
         if self.play_button.text() == "Play Sample":
             return
-
         self.media_player.play()
 
 
     def on_audio_state_changed(self, status):
         if status != QMediaPlayer.MediaStatus.EndOfMedia:
             return
-
         self.audio_done_playing = True
 
 
-    def play_letter_sound(self, letter):
-        file_path = "assets/letter_morse_audio/" + letter.lower() + ".mp3"
+    def play_character_sound(self, directory, character):
+        file_path = path.join(directory, character.lower())
         self.play_audio(file_path)
 
 
@@ -236,6 +236,7 @@ class MainWindow(QMainWindow):
             button.setEnabled(False)
 
         self.replay_button.setEnabled(False)
+
 
     def on_wrong(self):
         self.play_audio("assets/wrong.wav")
@@ -264,34 +265,6 @@ class MainWindow(QMainWindow):
             self.media_player.play()
 
             self.audio_done_playing = False
-
-
-    # def generate_random_option_choices(self):
-    #     # self.randomly_generated = [""] * len(self.letter_options)
-    #
-    #     # for i in range(len(self.letter_options)):
-    #     #     self.randomly_generated[i] = random.choice(ascii_uppercase)
-    #
-    #     # answer_index = random.randint(1, len(self.letter_options) - 1)
-    #     # self.randomly_generated[answer_index] = self.answer
-    #
-    #     # return self.randomly_generated
-    #
-    #
-    # def generate_option_choices(self):
-    #     random_options = self.generate_random_option_choices()
-    #     while self.has_duplicates(random_options):
-    #         random_options = self.generate_random_option_choices()
-    #
-    #     return random_options
-
-
-    # @staticmethod
-    # def has_duplicates(choices):
-    #     if len(set([x for x in choices if choices.count(x) > 1])) > 0:
-    #         return True
-    #     return False
-
 
 
 if __name__ == "__main__":
