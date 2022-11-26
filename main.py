@@ -3,7 +3,8 @@ from math import ceil
 from string import ascii_uppercase
 import random
 from os import path
-from PySide6.QtCore import Qt, QUrl
+import time
+from PySide6.QtCore import Qt, QUrl, QEvent
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -29,7 +30,6 @@ class MainWindow(QMainWindow):
         self.audio_output = None
         self.num_wrong = 0
         self.num_correct = 0
-        self.audio_done_playing = True
         self.symbol_list = ["@", ",", ".", "?", "/"]
 
         self.setWindowTitle("rMorseTrainer")
@@ -64,8 +64,9 @@ class MainWindow(QMainWindow):
         layout.addLayout(num_correct_or_wrong_row)
 
         sample_row = QHBoxLayout()
-        self.play_button = QPushButton("Play Sample")
+        self.play_button = QPushButton("Play")
         self.play_button.clicked.connect(self.on_play_button_pressed)
+        # self.play_button.installEventFilter(self)
         sample_row.addWidget(self.play_button)
         self.replay_button = QPushButton("Replay")
         self.replay_button.clicked.connect(self.on_replay_button_pressed)
@@ -150,10 +151,7 @@ class MainWindow(QMainWindow):
                 grid_index += 1
 
 
-    def on_play_button_pressed(self):
-        if self.play_button.text() == "Play Sample":
-            self.play_button.setText("Play Next Sample")
-
+    def enable_relevant_buttons(self):
         for button in self.all_buttons:
             button.setEnabled(False)
 
@@ -194,6 +192,11 @@ class MainWindow(QMainWindow):
             for button in self.all_buttons:
                 button.setEnabled(True)
 
+
+    def on_play_button_pressed(self):
+        self.play_button.setEnabled(False)
+        self.enable_relevant_buttons()
+
         print("ANSWER: " + self.answer)
 
         self.replay_button.setEnabled(True)
@@ -203,19 +206,30 @@ class MainWindow(QMainWindow):
         elif self.answer.isnumeric():
             self.play_character_sound("assets/number_morse_audio", self.answer + ".mp3")
         elif self.answer in self.symbol_list:
-            self.play_character_sound("assets/symbol_morse_audio", self.answer + ".mp3")
+            symbol_file_name = None
+
+            if self.answer == self.symbol_list[0]:
+                symbol_file_name = "@"
+            elif self.answer == self.symbol_list[1]:
+                symbol_file_name = "comma"
+            elif self.answer == self.symbol_list[2]:
+                symbol_file_name = "period"
+            elif self.answer == self.symbol_list[3]:
+                symbol_file_name = "questionmark"
+            elif self.answer == self.symbol_list[4]:
+                symbol_file_name = "slash"
+
+            self.play_character_sound("assets/symbol_morse_audio", symbol_file_name + ".mp3")
 
 
     def on_replay_button_pressed(self):
-        if self.play_button.text() == "Play Sample":
-            return
         self.media_player.play()
 
 
     def on_audio_state_changed(self, status):
         if status != QMediaPlayer.MediaStatus.EndOfMedia:
             return
-        self.audio_done_playing = True
+        self.play_button.setEnabled(True)
 
 
     def play_character_sound(self, directory, character):
@@ -251,20 +265,16 @@ class MainWindow(QMainWindow):
 
 
     def play_audio(self, file_path):
-        if self.audio_done_playing:
+        if self.media_player:
+            self.media_player.stop()
 
-            if self.media_player:
-                self.media_player.stop()
-
-            self.media_player = QMediaPlayer()
-            self.media_player.mediaStatusChanged.connect(self.on_audio_state_changed)
-            self.audio_output = QAudioOutput()
-            self.media_player.setAudioOutput(self.audio_output)
-            self.media_player.setSource(QUrl.fromLocalFile(file_path))
-            self.audio_output.setVolume(50)
-            self.media_player.play()
-
-            self.audio_done_playing = False
+        self.media_player = QMediaPlayer()
+        self.media_player.mediaStatusChanged.connect(self.on_audio_state_changed)
+        self.audio_output = QAudioOutput()
+        self.media_player.setAudioOutput(self.audio_output)
+        self.media_player.setSource(QUrl.fromLocalFile(file_path))
+        self.audio_output.setVolume(50)
+        self.media_player.play()
 
 
 if __name__ == "__main__":
