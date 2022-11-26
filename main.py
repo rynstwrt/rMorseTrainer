@@ -3,8 +3,7 @@ from math import ceil
 from string import ascii_uppercase
 import random
 from os import path
-import time
-from PySide6.QtCore import Qt, QUrl, QEvent
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -21,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 from qt_material import apply_stylesheet
 
+effect = None
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -46,14 +46,14 @@ class MainWindow(QMainWindow):
         self.included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Symbols Only", "Letters and Numbers Only", "All"])
         included_items_form.addRow(included_items_label, self.included_items_combo_box)
         layout.addLayout(included_items_form)
-        #
-        # speed_form = QFormLayout()
-        # speed_label = QLabel("Speed:")
-        # self.speed_combo_box = QComboBox()
-        # self.speed_combo_box.addItems(["25%", "50%", "75%", "100%"])
-        # self.speed_combo_box.setCurrentIndex(3)
-        # speed_form.addRow(speed_label, self.speed_combo_box)
-        # layout.addLayout(speed_form)
+
+        speed_form = QFormLayout()
+        speed_label = QLabel("Speed:")
+        self.speed_combo_box = QComboBox()
+        self.speed_combo_box.addItems(["25%", "50%", "75%", "100%"])
+        self.speed_combo_box.setCurrentIndex(3)
+        speed_form.addRow(speed_label, self.speed_combo_box)
+        layout.addLayout(speed_form)
 
         num_correct_or_wrong_row = QHBoxLayout()
         num_correct_or_wrong_row.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
@@ -66,7 +66,6 @@ class MainWindow(QMainWindow):
         sample_row = QHBoxLayout()
         self.play_button = QPushButton("Play")
         self.play_button.clicked.connect(self.on_play_button_pressed)
-        # self.play_button.installEventFilter(self)
         sample_row.addWidget(self.play_button)
         self.replay_button = QPushButton("Replay")
         self.replay_button.clicked.connect(self.on_replay_button_pressed)
@@ -227,9 +226,8 @@ class MainWindow(QMainWindow):
 
 
     def on_audio_state_changed(self, status):
-        if status != QMediaPlayer.MediaStatus.EndOfMedia:
-            return
-        self.play_button.setEnabled(True)
+        if status == QMediaPlayer.MediaStatus.EndOfMedia:
+            self.play_button.setEnabled(True)
 
 
     def play_character_sound(self, directory, character):
@@ -253,18 +251,18 @@ class MainWindow(QMainWindow):
 
 
     def on_wrong(self):
-        self.play_audio("assets/wrong.wav")
+        self.play_audio("assets/wrong.wav", 200)
         self.num_wrong += 1
         self.num_wrong_text.setText("Wrong: " + str(self.num_wrong))
 
 
     def on_correct(self):
-        self.play_audio("assets/correct.wav")
+        self.play_audio("assets/correct.wav", 150)
         self.num_correct += 1
         self.num_correct_text.setText("Correct: " + str(self.num_correct))
 
 
-    def play_audio(self, file_path):
+    def play_audio(self, file_path, volume=50):
         if self.media_player:
             self.media_player.stop()
 
@@ -273,15 +271,17 @@ class MainWindow(QMainWindow):
         self.audio_output = QAudioOutput()
         self.media_player.setAudioOutput(self.audio_output)
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
-        self.audio_output.setVolume(50)
+        self.audio_output.setVolume(volume)
 
-        # speed_option = self.speed_combo_box.currentIndex()
-        # if speed_option == 0:
-        #     self.media_player.setPlaybackRate(0.25)
-        # if speed_option == 1:
-        #     self.media_player.setPlaybackRate(2)
-        # else:
-        #     self.media_player.setPlaybackRate(1)
+        speed_option = self.speed_combo_box.currentIndex()
+        if speed_option == 0:
+            self.media_player.setPlaybackRate(0.25)
+        elif speed_option == 1:
+            self.media_player.setPlaybackRate(.50)
+        elif speed_option == 2:
+            self.media_player.setPlaybackRate(.75)
+        else:
+            self.media_player.setPlaybackRate(1)
 
         self.media_player.play()
 
