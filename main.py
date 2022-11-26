@@ -46,14 +46,14 @@ class MainWindow(QMainWindow):
         self.included_items_combo_box.addItems(["Letters Only", "Numbers Only", "Symbols Only", "Letters and Numbers Only", "All"])
         included_items_form.addRow(included_items_label, self.included_items_combo_box)
         layout.addLayout(included_items_form)
-
-        speed_form = QFormLayout()
-        speed_label = QLabel("Speed:")
-        self.speed_combo_box = QComboBox()
-        self.speed_combo_box.addItems(["25%", "50%", "75%", "100%"])
-        self.speed_combo_box.setCurrentIndex(3)
-        speed_form.addRow(speed_label, self.speed_combo_box)
-        layout.addLayout(speed_form)
+        #
+        # speed_form = QFormLayout()
+        # speed_label = QLabel("Speed:")
+        # self.speed_combo_box = QComboBox()
+        # self.speed_combo_box.addItems(["25%", "50%", "75%", "100%"])
+        # self.speed_combo_box.setCurrentIndex(3)
+        # speed_form.addRow(speed_label, self.speed_combo_box)
+        # layout.addLayout(speed_form)
 
         num_correct_or_wrong_row = QHBoxLayout()
         num_correct_or_wrong_row.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignBottom)
