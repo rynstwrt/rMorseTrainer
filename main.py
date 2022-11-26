@@ -49,10 +49,10 @@ class MainWindow(QMainWindow):
 
         speed_form = QFormLayout()
         speed_label = QLabel("Speed:")
-        speed_combo_box = QComboBox()
-        speed_combo_box.addItems(["5 wpm", "12 wpm", "18 wpm", "20 wpm"])
-        speed_combo_box.setCurrentIndex(1)
-        speed_form.addRow(speed_label, speed_combo_box)
+        self.speed_combo_box = QComboBox()
+        self.speed_combo_box.addItems(["25%", "50%", "75%", "100%"])
+        self.speed_combo_box.setCurrentIndex(3)
+        speed_form.addRow(speed_label, self.speed_combo_box)
         layout.addLayout(speed_form)
 
         num_correct_or_wrong_row = QHBoxLayout()
@@ -274,6 +274,15 @@ class MainWindow(QMainWindow):
         self.media_player.setAudioOutput(self.audio_output)
         self.media_player.setSource(QUrl.fromLocalFile(file_path))
         self.audio_output.setVolume(50)
+
+        # speed_option = self.speed_combo_box.currentIndex()
+        # if speed_option == 0:
+        #     self.media_player.setPlaybackRate(0.25)
+        # if speed_option == 1:
+        #     self.media_player.setPlaybackRate(2)
+        # else:
+        #     self.media_player.setPlaybackRate(1)
+
         self.media_player.play()
 
 
