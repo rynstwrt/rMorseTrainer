@@ -20,8 +20,6 @@ from PySide6.QtWidgets import (
 )
 from qt_material import apply_stylesheet
 
-effect = None
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
