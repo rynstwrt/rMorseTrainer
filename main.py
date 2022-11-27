@@ -3,6 +3,7 @@ from math import ceil
 from string import ascii_uppercase
 import random
 from os import path
+from audioplayer import AudioPlayer
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
 from PySide6.QtGui import QIcon
@@ -23,6 +24,7 @@ from qt_material import apply_stylesheet
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.audioplayer = None
         self.answer = None
         self.media_player = None
         self.audio_output = None
@@ -220,12 +222,13 @@ class MainWindow(QMainWindow):
 
 
     def on_replay_button_pressed(self):
-        self.media_player.play()
+        print("replay button pressed")
+        self.audioplayer.play(loop=False, block=True)
 
 
-    def on_audio_state_changed(self, status):
-        if status == QMediaPlayer.MediaStatus.EndOfMedia:
-            self.play_button.setEnabled(True)
+    # def on_audio_state_changed(self, status):
+    #     if status == QMediaPlayer.MediaStatus.EndOfMedia:
+    #         self.play_button.setEnabled(True)
 
 
     def play_character_sound(self, directory, character):
@@ -252,36 +255,41 @@ class MainWindow(QMainWindow):
         self.play_audio("assets/wrong.wav", 200)
         self.num_wrong += 1
         self.num_wrong_text.setText("Wrong: " + str(self.num_wrong))
+        self.play_button.setEnabled(True)
 
 
     def on_correct(self):
         self.play_audio("assets/correct.wav", 150)
         self.num_correct += 1
         self.num_correct_text.setText("Correct: " + str(self.num_correct))
+        self.play_button.setEnabled(True)
 
 
     def play_audio(self, file_path, volume=50):
-        if self.media_player:
-            self.media_player.stop()
-
-        self.media_player = QMediaPlayer()
-        self.media_player.mediaStatusChanged.connect(self.on_audio_state_changed)
-        self.audio_output = QAudioOutput()
-        self.media_player.setAudioOutput(self.audio_output)
-        self.media_player.setSource(QUrl.fromLocalFile(file_path))
-        self.audio_output.setVolume(volume)
-
-        speed_option = self.speed_combo_box.currentIndex()
-        if speed_option == 0:
-            self.media_player.setPlaybackRate(0.25)
-        elif speed_option == 1:
-            self.media_player.setPlaybackRate(.50)
-        elif speed_option == 2:
-            self.media_player.setPlaybackRate(.75)
-        else:
-            self.media_player.setPlaybackRate(1)
-
-        self.media_player.play()
+        self.audioplayer = AudioPlayer(file_path)
+        self.audioplayer.play(loop=False, block=True)
+        self.audioplayer.volume = volume
+        # if self.media_player:
+        #     self.media_player.stop()
+        #
+        # self.media_player = QMediaPlayer()
+        # self.media_player.mediaStatusChanged.connect(self.on_audio_state_changed)
+        # self.audio_output = QAudioOutput()
+        # self.media_player.setAudioOutput(self.audio_output)
+        # self.media_player.setSource(QUrl.fromLocalFile(file_path))
+        # self.audio_output.setVolume(volume)
+        #
+        # speed_option = self.speed_combo_box.currentIndex()
+        # if speed_option == 0:
+        #     self.media_player.setPlaybackRate(0.25)
+        # elif speed_option == 1:
+        #     self.media_player.setPlaybackRate(.50)
+        # elif speed_option == 2:
+        #     self.media_player.setPlaybackRate(.75)
+        # else:
+        #     self.media_player.setPlaybackRate(1)
+        #
+        # self.media_player.play()
 
 
 if __name__ == "__main__":
